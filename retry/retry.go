@@ -2,17 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/zhaoqiang0201/pkg/clock"
+	"math"
 	"time"
 )
 
 func main() {
-	backoff := NewExponentialBackoffManager(time.Second, time.Minute, time.Minute*2, 2, 2.0, 1.0, clock.RealClock{})
-	t := time.Now()
-
+	backoff := NewExponentialBackoffManager(time.Second, time.Minute, time.Minute*2, math.MaxInt32, 2.0, 1.0, clock.RealClock{})
+	fmt.Println("-->", time.Now())
 	stopCh := make(chan struct{})
 	BackoffUtil(func() {
-		fmt.Println("-->", time.Now().Sub(t).Seconds())
-		t = time.Now()
+		fmt.Println("-->", time.Now())
 	}, backoff, true, stopCh)
 }
