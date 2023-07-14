@@ -110,6 +110,7 @@ func (b *exponentialBackoffManagerImpl) getNextBackoff() time.Duration {
 		b.backoff.Duration = b.initialBackoff
 	}
 	b.lastBackoffStart = b.clock.Now()
+	fmt.Println("-------", b.backoff.Step(), "-------")
 	return b.backoff.Step()
 }
 
@@ -119,7 +120,8 @@ func (b *exponentialBackoffManagerImpl) Backoff() (clock.Timer, int) {
 	} else {
 		b.backoffTimer.Reset(b.getNextBackoff())
 	}
-	fmt.Println("*****", b.backoff.Steps)
+	fmt.Print("step: ", b.backoff.Steps)
+	fmt.Println()
 	return b.backoffTimer, b.backoff.Steps
 }
 
@@ -154,21 +156,14 @@ func BackoffUtil(f func(), backoff BackoffManager, sliding bool, stopCh <-chan s
 			t, s = backoff.Backoff()
 		}
 
-		func() {
-			defer func() {
-				if r := recover(); r != nil {
-					fmt.Println(r)
-				}
-			}()
-			f()
-		}()
+		f()
 
 		if sliding {
 			t, s = backoff.Backoff()
 		}
 
 		if s <= 0 {
-			return
+			//return
 		}
 
 		select {
@@ -177,7 +172,8 @@ func BackoffUtil(f func(), backoff BackoffManager, sliding bool, stopCh <-chan s
 				<-t.C()
 			}
 			return
-		case <-t.C():
+		case t := <-t.C():
+			fmt.Println("===", t, "==============")
 		}
 	}
 }
