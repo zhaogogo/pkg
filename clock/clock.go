@@ -36,6 +36,7 @@ type Ticker interface {
 }
 
 var _ WithTicker = RealClock{}
+var _ Clock = RealClock{}
 
 type RealClock struct{}
 
