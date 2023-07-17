@@ -1,19 +1,17 @@
-package main
+package retry
 
 import (
-	"fmt"
-	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/utils/clock"
+	"github.com/zhaoqiang0201/pkg/clock"
+	"math"
 	"testing"
 	"time"
 )
 
 func TestBackoff(t *testing.T) {
-	c := clock.RealClock{}
-	backoff := wait.NewExponentialBackoffManager(time.Second, time.Minute, time.Minute*2, 2.0, 1.0, c)
-
+	backoff := NewExponentialBackoffManager(time.Second, time.Minute, time.Minute*2, math.MaxInt32, 2.0, 1.0, clock.RealClock{})
+	t.Log(">>>>", time.Now())
 	stopCh := make(chan struct{})
-	wait.BackoffUntil(func() {
-		fmt.Println("-->", time.Now())
-	}, backoff, false, stopCh)
+	BackoffUtil(func() {
+		t.Log("-->", time.Now())
+	}, backoff, true, stopCh)
 }

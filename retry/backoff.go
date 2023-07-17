@@ -1,9 +1,9 @@
-package main
+package retry
 
 import (
-	"fmt"
 	"github.com/zhaoqiang0201/pkg/clock"
 	"math"
+	"math/rand"
 	"time"
 )
 
@@ -79,8 +79,7 @@ func Jitter(duration time.Duration, maxFactor float64) time.Duration {
 		maxFactor = 1.0
 	}
 	wait := duration + time.Duration(
-		//rand.Float64()*maxFactor*float64(duration),
-		maxFactor*float64(duration),
+		rand.Float64()*maxFactor*float64(duration),
 	)
 
 	return wait
@@ -92,7 +91,7 @@ type BackoffManager interface {
 	// until Timer.C() drains. If the second Backoff() is called before the timer from the first
 	// Backoff() call finishes, the first timer will NOT be drained and result in undetermined
 	// behavior.
-	Backoff() (clock.Timer, int)
+	Backoff() clock.Timer
 }
 
 type exponentialBackoffManagerImpl struct {
@@ -110,19 +109,18 @@ func (b *exponentialBackoffManagerImpl) getNextBackoff() time.Duration {
 		b.backoff.Duration = b.initialBackoff
 	}
 	b.lastBackoffStart = b.clock.Now()
-	fmt.Println("-------", b.backoff.Step(), "-------")
+
 	return b.backoff.Step()
 }
 
-func (b *exponentialBackoffManagerImpl) Backoff() (clock.Timer, int) {
+func (b *exponentialBackoffManagerImpl) Backoff() clock.Timer {
 	if b.backoffTimer == nil {
 		b.backoffTimer = b.clock.NewTimer(b.getNextBackoff())
 	} else {
 		b.backoffTimer.Reset(b.getNextBackoff())
 	}
-	fmt.Print("step: ", b.backoff.Steps)
-	fmt.Println()
-	return b.backoffTimer, b.backoff.Steps
+
+	return b.backoffTimer
 }
 
 func NewExponentialBackoffManager(initBackoff, maxbackoff, resetDuration time.Duration, step int, backoffFactor, jitter float64, c clock.Clock) BackoffManager {
@@ -144,7 +142,6 @@ func NewExponentialBackoffManager(initBackoff, maxbackoff, resetDuration time.Du
 
 func BackoffUtil(f func(), backoff BackoffManager, sliding bool, stopCh <-chan struct{}) {
 	var t clock.Timer
-	var s int
 	for {
 		select {
 		case <-stopCh:
@@ -153,17 +150,13 @@ func BackoffUtil(f func(), backoff BackoffManager, sliding bool, stopCh <-chan s
 		}
 
 		if !sliding {
-			t, s = backoff.Backoff()
+			t = backoff.Backoff()
 		}
 
 		f()
 
 		if sliding {
-			t, s = backoff.Backoff()
-		}
-
-		if s <= 0 {
-			//return
+			t = backoff.Backoff()
 		}
 
 		select {
@@ -172,8 +165,7 @@ func BackoffUtil(f func(), backoff BackoffManager, sliding bool, stopCh <-chan s
 				<-t.C()
 			}
 			return
-		case t := <-t.C():
-			fmt.Println("===", t, "==============")
+		case <-t.C():
 		}
 	}
 }
