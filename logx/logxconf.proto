@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package logx;
+
+option go_package = "github.com/zhaogogo/pkg/logx;logx";
+
+message LogxConf {
+  string path_dir = 1;
+  string file_name = 2;
+  Encode encoding = 3;
+  LogLevel level = 4;
+  int64 keep_days = 5;
+  int64 max_backups = 6;
+  int64 max_size = 7;
+}
+
+enum Encode {
+  plain = 0;
+  json = 1;
+}
+
+// protobuf 值必须对应，否则解析会报错
+enum LogLevel {
+  DEBUG = 0;
+  INFO = 1;
+  WARN = 2;
+  ERROR = 3;
+  FATAL =4;
+}
