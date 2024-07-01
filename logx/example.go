@@ -10,7 +10,10 @@ import (
 var Default *Helper
 
 func init() {
-	Default = NewHelper(SetUpLog("", "", "", &LogxConf{}))
+	Default = NewHelper(SetUpLog("", "", "", &LogxConf{
+		Encoding: Encode_plain,
+		Level:    LogLevel_DEBUG,
+	}))
 }
 
 func WithContext(ctx context.Context) *Helper {
