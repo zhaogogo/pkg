@@ -44,15 +44,6 @@ func WithSprintf(sprintf func(format string, a ...interface{}) string) HelpOptio
 	}
 }
 
-func WithField(fields ...string) HelpOption {
-	if len(fields)%2 != 0 {
-		fields = append(fields, "")
-	}
-	return func(opts *Helper) {
-		opts.field = append(opts.field, fields...)
-	}
-}
-
 // NewHelper new a logger helper.
 func NewHelper(logger log.Logger, opts ...HelpOption) *Helper {
 	options := &Helper{

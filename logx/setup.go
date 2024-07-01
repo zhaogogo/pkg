@@ -23,7 +23,7 @@ func SetUpLog(serviceId string, serviceName string, serviceVersion string, c *Lo
 			MaxBackup(int(c.MaxBackups)),
 			Encoding(c.Encoding.String()),
 			Level(c.Level.String()),
-			FilterKey("args"),
+			//FilterKey("args"),
 			//logx.EntryptionFn(logEntryption),
 		),
 		"ts", log.DefaultTimestamp,
